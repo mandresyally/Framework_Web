@@ -2,11 +2,11 @@
 
 # Définition des variables
 APP_NAME="framework"
-SRC_DIR="src/main/java/Controllers"
+SRC_DIR="src/main/java"
 WEB_DIR="src/main/webapp"
 BUILD_DIR="build"
 LIB_DIR="lib"
-TOMCAT_WEBAPPS="/home/mandresy/Documents/apache-tomcat-10.0.16/webapps"
+TOMCAT_WEBAPPS="/Users/mendrika/Documents/TOMCAT/webapps"
 SERVLET_API_JAR="$LIB_DIR/servlet-api.jar"
 FRAMEWORK_JAR="framework-web.jar"
 
@@ -32,7 +32,6 @@ jar -cvf $FRAMEWORK_JAR .
 cd ../../../
 
 mv  $BUILD_DIR/WEB-INF/classes/$FRAMEWORK_JAR  $BUILD_DIR/WEB-INF/lib
-#rm -rf $BUILD_DIR/WEB-INF/classes/*
 
 # Copier les fichiers web (web.xml, JSP, etc.)
 cp -r $WEB_DIR/* $BUILD_DIR/
