@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import main.java.util.JsonUtil;
 import main.java.util.ModelAndView;
 import main.java.util.UrlMappingKey;
 
@@ -37,8 +38,8 @@ public class FrontControllerServlet extends HttpServlet {
                 }
                 request.getRequestDispatcher(modelAndView.getView()).forward(request, response);
             } else if (result != null) {
-                response.setContentType("text/plain;charset=UTF-8");
-                response.getWriter().print(result);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().print(JsonUtil.toJson(result));
             }
         } catch (ReflectiveOperationException exception) {
             throw new ServletException("Impossible d'executer " + method.getName(), exception);

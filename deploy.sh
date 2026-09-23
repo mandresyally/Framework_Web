@@ -2,7 +2,7 @@
 
 # Définition des variables
 APP_NAME="framework"
-SRC_DIR="src/main/java/Controllers"
+SRC_DIR="src/main/java"
 WEB_DIR="src/main/webapp"
 BUILD_DIR="build"
 LIB_DIR="lib"
@@ -50,4 +50,4 @@ echo ""
 
 echo "Déploiement terminé. Redémarrez Tomcat si nécessaire."
 
-echo ""
+echo "demarer "
