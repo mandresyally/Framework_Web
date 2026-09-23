@@ -27,27 +27,27 @@ public class ContextListener implements ServletContextListener {
     }
 
     public void init(ServletContext context) throws Exception {
-            Map<UrlMappingKey, Method> mappings = new LinkedHashMap<>();
-            List<Class<?>> classes = Util.getClassesInPackage("main.java.Controllers");
-            for (Class<?> controller : classes) {
-                if (!controller.isAnnotationPresent(Controller.class)) {
+        Map<UrlMappingKey, Method> mappings = new LinkedHashMap<>();
+        List<Class<?>> classes = Util.getClassesInPackage("main.java");
+        for (Class<?> controller : classes) {
+            if (!controller.isAnnotationPresent(Controller.class)) {
+                continue;
+            }
+            System.out.println("Controller trouve: " + controller.getName());
+            for (Method method : controller.getDeclaredMethods()) {
+                UrlMapping mapping = method.getAnnotation(UrlMapping.class);
+                if (mapping == null) {
                     continue;
                 }
-                System.out.println("Controller trouve: " + controller.getName());
-                for (Method method : controller.getDeclaredMethods()) {
-                    UrlMapping mapping = method.getAnnotation(UrlMapping.class);
-                    if (mapping == null) {
-                        continue;
-                    }
-                    String httpMethod = mapping.method().toUpperCase(Locale.ROOT);
-                    UrlMappingKey key = new UrlMappingKey(mapping.value(), httpMethod);
-                    if (mappings.put(key, method) != null) {
-                        throw new IllegalStateException("Mapping duplique: " + httpMethod + " " + mapping.value());
-                    }
-                    System.out.println("Mapping trouve: " + httpMethod + " " + mapping.value()
-                            + " -> " + controller.getName() + "." + method.getName());
+                String httpMethod = mapping.method().toUpperCase(Locale.ROOT);
+                UrlMappingKey key = new UrlMappingKey(mapping.value(), httpMethod);
+                if (mappings.put(key, method) != null) {
+                    throw new IllegalStateException("Mapping duplique: " + httpMethod + " " + mapping.value());
                 }
+                System.out.println("Mapping trouve: " + httpMethod + " " + mapping.value()
+                        + " -> " + controller.getName() + "." + method.getName());
             }
-            context.setAttribute(URL_MAPPINGS_ATTRIBUTE, mappings);
+        }
+        context.setAttribute(URL_MAPPINGS_ATTRIBUTE, mappings);
     }
 }
