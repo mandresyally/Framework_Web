@@ -7,11 +7,15 @@ version="2.4">
 
 <servlet>
 <servlet-name>FrontControllerServlet</servlet-name>
-<servlet-class>FrontControllerServlet</servlet-class>
+<servlet-class>main.java.Controllers.FrontControllerServlet</servlet-class>
 </servlet>
+
+<listener>
+<listener-class>main.java.Controllers.ContextListener</listener-class>
+</listener>
 
 <servlet-mapping>
 <servlet-name>FrontControllerServlet</servlet-name>
-<url-pattern>/*/</url-pattern>
+<url-pattern>/*</url-pattern>
 </servlet-mapping>
 </web-app>
