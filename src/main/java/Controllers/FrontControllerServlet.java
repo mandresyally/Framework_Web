@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import main.java.annotation.UrlMapping;
 import main.java.util.JsonUtil;
 import main.java.util.ModelAndView;
 import main.java.util.UrlMappingKey;
@@ -32,14 +33,22 @@ public class FrontControllerServlet extends HttpServlet {
         try {
             Object controller = method.getDeclaringClass().getDeclaredConstructor().newInstance();
             Object result = method.invoke(controller);
-            if (result instanceof ModelAndView modelAndView) {
+            UrlMapping mapping = method.getAnnotation(UrlMapping.class);
+            if (mapping.restAPI()) {
+                if (result instanceof String) {
+                    response.setContentType("text/plain;charset=UTF-8");
+                } else {
+                    response.setContentType("application/json;charset=UTF-8");
+                }
+                response.getWriter().print(JsonUtil.serializeApiResult(result));
+            } else if (result instanceof ModelAndView modelAndView) {
                 for (Map.Entry<String, Object> entry : modelAndView.getModel().entrySet()) {
                     request.setAttribute(entry.getKey(), entry.getValue());
                 }
                 request.getRequestDispatcher(modelAndView.getView()).forward(request, response);
             } else if (result != null) {
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().print(JsonUtil.toJson(result));
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().print(result);
             }
         } catch (ReflectiveOperationException exception) {
             throw new ServletException("Impossible d'executer " + method.getName(), exception);

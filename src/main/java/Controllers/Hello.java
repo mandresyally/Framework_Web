@@ -8,12 +8,17 @@ import main.java.util.ModelAndView;
 
 @Controller
 public class Hello {
-    @UrlMapping(value = "/api/hello", method = "GET")
-    public Map<String, Object> api() {
+    @UrlMapping(value = "/api/hello", method = "GET", restAPI = true)
+    public Object api() {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Bonjour depuis l'API Hello");
         response.put("success", true);
         return response;
+    }
+
+    @UrlMapping(value = "/api/hello-text", method = "GET", restAPI = true)
+    public Object apiText() {
+        return "Bonjour depuis l'API Hello";
     }
 
     @UrlMapping(value = "/hello", method = "GET")

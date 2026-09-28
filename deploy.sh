@@ -8,6 +8,7 @@ BUILD_DIR="build"
 LIB_DIR="lib"
 TOMCAT_WEBAPPS="/home/mandresy/Documents/apache-tomcat-10.0.16/webapps"
 SERVLET_API_JAR="$LIB_DIR/servlet-api.jar"
+GSON_JAR="$LIB_DIR/gson-2.13.1.jar"
 FRAMEWORK_JAR="framework-web.jar"
 
 # Nettoyage et création du répertoire temporaire
@@ -23,7 +24,7 @@ find $SRC_DIR -name "*.java" > sources.txt
 chmod +r sources.txt
 echo "source="
 cat sources.txt
-javac -cp "$SERVLET_API_JAR" -d $BUILD_DIR/WEB-INF/classes @sources.txt
+javac -cp "$SERVLET_API_JAR:$GSON_JAR" -d $BUILD_DIR/WEB-INF/classes @sources.txt
 rm sources.txt
 
 cd $BUILD_DIR/WEB-INF/classes
@@ -32,6 +33,7 @@ jar -cvf $FRAMEWORK_JAR .
 cd ../../../
 
 mv  $BUILD_DIR/WEB-INF/classes/$FRAMEWORK_JAR  $BUILD_DIR/WEB-INF/lib
+cp "$GSON_JAR" $BUILD_DIR/WEB-INF/lib/
 #rm -rf $BUILD_DIR/WEB-INF/classes/*
 
 # Copier les fichiers web (web.xml, JSP, etc.)
@@ -49,5 +51,7 @@ cp -f $BUILD_DIR/$APP_NAME.war $TOMCAT_WEBAPPS/
 echo ""
 
 echo "Déploiement terminé. Redémarrez Tomcat si nécessaire."
-
-echo "demarer "
+echo "stoper TOMCAT"
+/home/mandresy/Documents/apache-tomcat-10.0.16/bin/shutdown.sh
+echo "demarer TOMCAT"
+/home/mandresy/Documents/apache-tomcat-10.0.16/bin/startup.sh
