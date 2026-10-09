@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 
 import main.java.util.ModelAndView;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
+import main.java.annotation.RequestParam;
 
 public class FrontControllerServlet extends HttpServlet {
 
@@ -129,7 +130,10 @@ public class FrontControllerServlet extends HttpServlet {
         Object[] values = new Object[parameterTypes.length];
 
         for (int index = 0; index < parameterTypes.length; index++) {
-            String parameterName = parameters[index].getName();
+            RequestParam requestParam = parameters[index].getAnnotation(RequestParam.class);
+            String parameterName = requestParam == null
+                    ? parameters[index].getName()
+                    : requestParam.value();
             String value = request.getParameter(parameterName);
             if (value == null) {
                 throw new IllegalArgumentException("Missing parameter: " + parameterName);
