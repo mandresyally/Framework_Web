@@ -17,11 +17,12 @@ javac --release 8 -cp "$SERVLET_API_JAR" -d "$BUILD_DIR/classes" @sources.txt
 rm -f sources.txt
 
 jar -cf "$FRAMEWORK_JAR" -C "$BUILD_DIR/classes" .
-cp -f "$FRAMEWORK_JAR" "../sprint7/lib/$FRAMEWORK_JAR"
+mkdir -p "../sprint7/hello/lib"
+cp -f "$FRAMEWORK_JAR" "../sprint7/hello/lib/$FRAMEWORK_JAR"
 
 echo ""
 
 echo "Framework compilé : $FRAMEWORK_JAR"
-echo "Copié dans ../sprint7/lib/"
+echo "Copié dans ../sprint7/hello/lib/"
 
 echo ""
