@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import main.java.util.ModelAndView;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
@@ -160,7 +162,39 @@ public class FrontControllerServlet extends HttpServlet {
         } else if (obj instanceof Map) {
             return mapToJson((Map<String, Object>) obj);
         }
-        return "{}";
+        return objectToJson(obj);
+    }
+
+    private String objectToJson(Object obj) {
+        if (obj == null) {
+            return "null";
+        }
+
+        StringBuilder json = new StringBuilder("{");
+        Field[] fields = obj.getClass().getDeclaredFields();
+        int writtenFields = 0;
+        for (Field field : fields) {
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            try {
+                field.setAccessible(true);
+                if (writtenFields > 0) {
+                    json.append(",");
+                }
+                json.append("\"").append(field.getName()).append("\":");
+                Object value = field.get(obj);
+                if (value instanceof Number || value instanceof Boolean) {
+                    json.append(value);
+                } else {
+                    json.append("\"").append(value == null ? "" : value.toString()).append("\"");
+                }
+                writtenFields++;
+            } catch (IllegalAccessException exception) {
+                throw new IllegalArgumentException("Unable to serialize field: " + field.getName(), exception);
+            }
+        }
+        return json.append("}").toString();
     }
 
     @SuppressWarnings("unchecked")
