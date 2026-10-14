@@ -2,12 +2,16 @@ package main.java.Controllers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import javax.servlet.annotation.MultipartConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +22,9 @@ import java.lang.reflect.Modifier;
 import main.java.util.ModelAndView;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
 import main.java.annotation.RequestParam;
+import main.java.util.MapFile;
 
+@MultipartConfig
 public class FrontControllerServlet extends HttpServlet {
 
     private HashMap<String, Method> mappingUrls;
@@ -136,6 +142,10 @@ public class FrontControllerServlet extends HttpServlet {
             String parameterName = requestParam == null
                     ? parameters[index].getName()
                     : requestParam.value();
+            if (parameterTypes[index] == MapFile.class) {
+                values[index] = bindFile(request, parameterName);
+                continue;
+            }
             String value = request.getParameter(parameterName);
             if (value == null) {
                 throw new IllegalArgumentException("Missing parameter: " + parameterName);
@@ -153,6 +163,25 @@ public class FrontControllerServlet extends HttpServlet {
             }
         }
         return values;
+    }
+
+    private MapFile bindFile(HttpServletRequest request, String parameterName) {
+        try {
+            Part part = request.getPart(parameterName);
+            if (part == null || part.getSubmittedFileName() == null) {
+                throw new IllegalArgumentException("Missing file: " + parameterName);
+            }
+            try (InputStream input = part.getInputStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, read);
+                }
+                return new MapFile(part.getSubmittedFileName(), output.toByteArray());
+            }
+        } catch (IOException | ServletException exception) {
+            throw new IllegalArgumentException("Unable to read file: " + parameterName, exception);
+        }
     }
 
     private String toJson(Object obj) {
