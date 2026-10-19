@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import javax.servlet.annotation.MultipartConfig;
 
@@ -23,6 +24,7 @@ import main.java.util.ModelAndView;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
 import main.java.annotation.RequestParam;
 import main.java.util.MapFile;
+import main.java.util.MySession;
 
 @MultipartConfig
 public class FrontControllerServlet extends HttpServlet {
@@ -68,6 +70,7 @@ public class FrontControllerServlet extends HttpServlet {
 
             try {
                 Object controleurInstance = clazz.getDeclaredConstructor().newInstance();
+                injectSession(controleurInstance, request);
                 
                 Object resultatInvocation = method.invoke(controleurInstance, bindParameters(method, request));
 
@@ -132,12 +135,29 @@ public class FrontControllerServlet extends HttpServlet {
         }
     }
 
+    private void injectSession(Object controleurInstance, HttpServletRequest request) throws IllegalAccessException {
+        for (Field field : controleurInstance.getClass().getDeclaredFields()) {
+            if (field.getType() == MySession.class) {
+                field.setAccessible(true);
+                field.set(controleurInstance, new MySession(request.getSession()));
+            }
+        }
+    }
+
     private Object[] bindParameters(Method method, HttpServletRequest request) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         java.lang.reflect.Parameter[] parameters = method.getParameters();
         Object[] values = new Object[parameterTypes.length];
 
         for (int index = 0; index < parameterTypes.length; index++) {
+            if (parameterTypes[index] == HttpSession.class) {
+                values[index] = request.getSession();
+                continue;
+            }
+            if (parameterTypes[index] == MySession.class) {
+                values[index] = new MySession(request.getSession());
+                continue;
+            }
             RequestParam requestParam = parameters[index].getAnnotation(RequestParam.class);
             String parameterName = requestParam == null
                     ? parameters[index].getName()
