@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import main.java.util.ModelAndView;
+import main.java.annotation.Auth;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
 import main.java.annotation.RequestParam;
 import main.java.util.MapFile;
@@ -69,6 +70,15 @@ public class FrontControllerServlet extends HttpServlet {
             Class<?> clazz = method.getDeclaringClass();
 
             try {
+                if (method.isAnnotationPresent(Auth.class)) {
+                    HttpSession session = request.getSession(false);
+                    if (session == null || session.getAttribute("nomUtilisateur") == null) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                                "Authentication required");
+                        return;
+                    }
+                }
+
                 Object controleurInstance = clazz.getDeclaredConstructor().newInstance();
                 injectSession(controleurInstance, request);
                 
@@ -209,7 +219,7 @@ public class FrontControllerServlet extends HttpServlet {
             ModelAndView mv = (ModelAndView) obj;
             return mapToJson(mv.getModel());
         } else if (obj instanceof Map) {
-            return mapToJson((Map<String, Object>) obj);
+            return mapToJson((Map<?, ?>) obj);
         }
         return objectToJson(obj);
     }
@@ -246,8 +256,7 @@ public class FrontControllerServlet extends HttpServlet {
         return json.append("}").toString();
     }
 
-    @SuppressWarnings("unchecked")
-    private String mapToJson(Map<String, Object> map) {
+    private String mapToJson(Map<?, ?> map) {
         if (map == null || map.isEmpty()) {
             return "{}";
         }
@@ -256,7 +265,7 @@ public class FrontControllerServlet extends HttpServlet {
         json.append("{");
         
         int i = 0;
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
             json.append("\"").append(entry.getKey()).append("\":");
             
             Object val = entry.getValue();
