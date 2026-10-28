@@ -22,6 +22,7 @@ import java.lang.reflect.Modifier;
 
 import main.java.util.ModelAndView;
 import main.java.annotation.Auth;
+import main.java.annotation.Role;
 import main.java.annotation.RestAPI; // 👈 1. Importation de l'annotation RestAPI
 import main.java.annotation.RequestParam;
 import main.java.util.MapFile;
@@ -70,11 +71,17 @@ public class FrontControllerServlet extends HttpServlet {
             Class<?> clazz = method.getDeclaringClass();
 
             try {
-                if (method.isAnnotationPresent(Auth.class)) {
+                if (method.isAnnotationPresent(Auth.class) || method.isAnnotationPresent(Role.class)) {
                     HttpSession session = request.getSession(false);
                     if (session == null || session.getAttribute("nomUtilisateur") == null) {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                 "Authentication required");
+                        return;
+                    }
+                    Role role = method.getAnnotation(Role.class);
+                    if (role != null && !hasRole(session.getAttribute("role"), role.value())) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                                "Role required: " + String.join(", ", role.value()));
                         return;
                     }
                 }
@@ -143,6 +150,18 @@ public class FrontControllerServlet extends HttpServlet {
                 out.println("</body></html>");
             }
         }
+    }
+
+    private boolean hasRole(Object sessionRole, String[] allowedRoles) {
+        if (sessionRole == null) {
+            return false;
+        }
+        for (String allowedRole : allowedRoles) {
+            if (allowedRole.equals(sessionRole.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void injectSession(Object controleurInstance, HttpServletRequest request) throws IllegalAccessException {
